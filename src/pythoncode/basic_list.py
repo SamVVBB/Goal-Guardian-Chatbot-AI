@@ -7,7 +7,7 @@ class TodoListApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('TODO List with PyQt')
+        self.setWindowTitle('TODO List')
         self.setGeometry(1000, 500, 400, 300)
 
         layout = QVBoxLayout()
