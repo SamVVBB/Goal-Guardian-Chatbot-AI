@@ -5,12 +5,21 @@ import speech_recognition as sr
 import threading
 from PIL import Image, ImageTk
 from customtkinter import CTkImage
+import pyttsx3
 
 customtkinter.set_appearance_mode("dark")  # Set dark mode for all widgets
 customtkinter.set_default_color_theme("green")  # Set green theme
 
 # Initialize the OpenAI API key
 openai.api_key = os.getenv('OPENAI_API_KEY')
+
+# set up TTS
+engine = pyttsx3.init()
+voices = engine.getProperty('voices')
+
+engine.setProperty('voice', voices[1].id)
+engine.setProperty('rate', 160)
+engine.setProperty('pitch', 190)
 
 root = customtkinter.CTk()
 root.title("Goal Guardian")
@@ -41,6 +50,13 @@ program_input = read_program_input("Goal-Guardian-Chatbot-AI/docs/programPrompt.
 
 ### STT ###
 
+def speak(text):
+    try:
+        engine.say(text)
+        engine.runAndWait()
+    except Exception as e:
+        print(f"Error during speech synthesis: {e}")
+
 def listen_for_speech():
     """Function to listen for speech once and process it."""
     with sr.Microphone() as mic:
@@ -56,6 +72,7 @@ def listen_for_speech():
             formatted_response = format_task_operation(response)
             print("AI: " + formatted_response)
             update_ai_display(formatted_response)
+            threading.Thread(target=speak, args=(formatted_response,)).start()
 
         except sr.UnknownValueError:
             print("Could not understand audio")
@@ -200,26 +217,26 @@ voice_button = customtkinter.CTkButton(
 voice_button.pack(pady=10, padx=10, anchor='center')
 voice_button.image = mic_icon # Keep as reference
 
-ai_display = customtkinter.CTkTextbox(master=left_frame, font=("Roboto", 16), height=10)
+ai_display = customtkinter.CTkTextbox(master=left_frame, font=("Roboto", 20), height=10)
 ai_display.pack(fill='both', expand=True, padx=10, pady=10)
 ai_display.configure(state='disabled')  # Initially disable editing of Text widget
 ai_display.configure(wrap='word')  # Set wrapping to word boundaries
 
+# Task entry and add button
+entry = customtkinter.CTkEntry(master=left_frame, placeholder_text="Manual task entry")
+entry.pack(pady=10, fill='x', expand=False)
+
+add_button = customtkinter.CTkButton(master=left_frame, text="Add Task", command=add_task)
+add_button.pack(pady=10)
+
 # Elements in the right frame
 
 # The List
-label = customtkinter.CTkLabel(master=right_frame, text="To-do List", font=("Roboto", 40))
+label = customtkinter.CTkLabel(master=right_frame, text="To-do List", font=("Roboto", 50))
 label.pack(pady=10)
 
-task_display = customtkinter.CTkTextbox(master=right_frame, font=("Roboto", 20), height=10)
+task_display = customtkinter.CTkTextbox(master=right_frame, font=("Roboto", 26), height=10)
 task_display.pack(fill='both', expand=True, padx=10, pady=10)
 task_display.configure(state='disabled')  # Initially disable editing of Text widget
-
-# Task entry and add button
-entry = customtkinter.CTkEntry(master=right_frame, placeholder_text="Manual task entry")
-entry.pack(pady=10, fill='x', expand=False)
-
-add_button = customtkinter.CTkButton(master=right_frame, text="Add Task", command=add_task)
-add_button.pack(pady=10)
 
 root.mainloop()
